@@ -1,98 +1,83 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTodos } from "@/hooks/useTodos";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+export default function Index() {
+  const {data,isLoading,isError} = useTodos();
+  
+  if (isLoading){
+    return(
+      <View style={styles.centralizado}>
+        <ActivityIndicator size="large" color="#0000ff"/>
+        <Text>Carregadno tarefa da prova...</Text>
+      </View>
+    )
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+  if (isError){
+    return(
+      <View style={styles.centralizado}>
+      <Text>Ops deu algo de errado </Text>
+      </View>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Tarefa (DummyJSON)</Text>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <FlatList
+    data={data?.todos}
+    keyExtractor={(item) => item.id.toString()}
+    renderItem={({item}) =>(
+      <View style={styles.cartao}>
+        <Text style={[styles.texto, item.completed && styles.textoRiscado]}>
+          {item.todo}
+        </Text>
+        <Text style={styles.status}>
+        </Text>
+      </View>
+    )}
+    />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container:{
+    flex: 1,
+    padding: 20,
+    backgroundColor:'#f0f0f0'
+  },
+
+  centralizado:{
     flex: 1,
     justifyContent: 'center',
-    flexDirection: 'row',
+    alignItems: 'center'
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+
+  titulo:{
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 15,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+
+  cartao:{
+    backgroundColor: '#fff',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
   },
-  title: {
-    textAlign: 'center',
+
+  texto:{
+    fontSize: 16,
   },
-  code: {
-    textTransform: 'uppercase',
+
+  textoRiscado:{
+    textDecorationColor: 'line-through',
+    color: '#999',
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+
+  status:{
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: 'bold',
+  }
 });
